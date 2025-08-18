@@ -105,8 +105,8 @@ int main()
   glDeleteShader(vertexShaderId);
   glDeleteShader(fragmentShaderId);
 
-  std::array vertices{ 0.5f, 0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f, 0.5f, 0.0f };
-  std::array indices{ 0U, 1U, 3U, 1U, 2U, 3U };
+  std::array vertices{ -0.5F, -0.5F, 0.0F, -0.25F, 0.5F, 0.0F, 0.0F, -0.5F, 0.0F, 0.25F, 0.5F, 0.0F, 0.5F, -0.5F, 0.0F };
+  std::array indices{ 0U, 1U, 2U, 2U, 3U, 4U };
 
   GLuint vao, vbo, ebo;
   glGenVertexArrays(1, &vao);
