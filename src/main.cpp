@@ -57,6 +57,10 @@ int main()
     return EXIT_FAILURE;
   }
 
+  GLint nAttrib;
+  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nAttrib);
+  std::cout << "Maximum nr of vertex attributes supported: " << nAttrib << std::endl;
+
   std::string vertexShaderSource;
   loadShaderSource("./shaders/vertex.glsl", vertexShaderSource);
   const GLchar* vertexShaderSourcePtr = vertexShaderSource.c_str();
@@ -165,6 +169,9 @@ int main()
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+  GLuint outColor1Location = glGetUniformLocation(shaderProgram1Id, "outColor1");
+  GLuint outColor2Location = glGetUniformLocation(shaderProgram2Id, "outColor2");
+
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
@@ -174,11 +181,17 @@ int main()
     glClearColor(0.2F, 0.3F, 0.3F, 1.0F);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    float timeValue = glfwGetTime();
+    float green1Value = (sin(timeValue) / 2.0F) + 0.5F;
+    float green2Value = (-sin(timeValue) / 2.0F) + 0.5F;
+
     glUseProgram(shaderProgram1Id);
+    glUniform4f(outColor1Location, 0.0F, green1Value, 0.0F, 1.0F);
     glBindVertexArray(vao1);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glUseProgram(shaderProgram2Id);
+    glUniform4f(outColor2Location, 0.0F, green2Value, 0.0F, 1.0F);
     glBindVertexArray(vao2);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
