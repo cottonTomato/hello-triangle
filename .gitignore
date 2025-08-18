@@ -4,6 +4,8 @@ build/
 cmake-build-*/
 out/
 
+main
+
 [Tt]esting/
 
 docs/*
