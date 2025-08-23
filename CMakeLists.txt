@@ -34,12 +34,19 @@ add_compile_options(
 
 find_package(glfw3 3.3 REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(glm 1.0.1 REQUIRED)
 
 # -- Executable
 
-add_executable(${PROJECT_NAME}_exe src/main.cpp src/glad.c)
+add_executable(
+    ${PROJECT_NAME}_exe
+    src/main.cpp
+    src/Shader.cpp
+    src/stb_image.cpp
+    src/glad.c
+)
 target_include_directories(${PROJECT_NAME}_exe PRIVATE include)
-target_link_libraries(${PROJECT_NAME}_exe PRIVATE glfw OpenGL::GL)
+target_link_libraries(${PROJECT_NAME}_exe PRIVATE glfw OpenGL::GL glm::glm)
 
 set_target_properties(${PROJECT_NAME}_exe PROPERTIES OUTPUT_NAME main)
 target_compile_features(${PROJECT_NAME}_exe PRIVATE cxx_std_20 c_std_99)
