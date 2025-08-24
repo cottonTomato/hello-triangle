@@ -12,6 +12,10 @@ class Texture
   Texture(const std::string& path);
 
   unsigned int getId() const;
+
+  void bind(unsigned int unit) const;
+
+  static void unbind(unsigned int unit);
 };
 
 #endif  // INCLUDE_INCLUDE_TEXTURE_HPP_

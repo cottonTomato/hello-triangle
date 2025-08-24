@@ -44,9 +44,23 @@ Texture::Texture(const std::string& path)
       image.get());
 
   glGenerateMipmap(GL_TEXTURE_2D);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 GLuint Texture::getId() const
 {
   return textureId;
+}
+
+void Texture::bind(GLuint unit) const
+{
+  glActiveTexture(GL_TEXTURE0 + unit);
+  glBindTexture(GL_TEXTURE_2D, textureId);
+}
+
+void Texture::unbind(GLuint unit)
+{
+  glActiveTexture(GL_TEXTURE0 + unit);
+  glBindTexture(GL_TEXTURE_2D, 0);
 }

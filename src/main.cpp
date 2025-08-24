@@ -4,6 +4,9 @@
 
 #include <array>
 #include <cstdlib>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 #include "Shader.hpp"
@@ -17,10 +20,6 @@ void errorCallback(int error, const char* description);
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height);
 
 void processInput(GLFWwindow* window);
-
-int loadShaderSource(const std::string& path, std::string& out);
-
-int mixRatio = 0;
 
 int main()
 {
@@ -60,21 +59,33 @@ int main()
     return EXIT_FAILURE;
   }
 
+  glEnable(GL_DEPTH_TEST);
+
   Shader shp("./shaders/vertex.glsl", "./shaders/fragment1.glsl");
 
   std::array vertices1{
-    // positions                        // colors                     // texture
-    0.5F,  0.5F,  0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F,  // top right
-    0.5F,  -0.5F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F,  // bottom right
-    -0.5F, -0.5F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F,  // bottom left
-    -0.5F, 0.5F,  0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F   // top left
+    -0.5F, -0.5F, -0.5F, 0.0F,  0.0F,  0.5F,  -0.5F, -0.5F, 1.0F,  0.0F,  0.5F,
+    0.5F,  -0.5F, 1.0F,  1.0F,  0.5F,  0.5F,  -0.5F, 1.0F,  1.0F,  -0.5F, 0.5F,
+    -0.5F, 0.0F,  1.0F,  -0.5F, -0.5F, -0.5F, 0.0F,  0.0F,  -0.5F, -0.5F, 0.5F,
+    0.0F,  0.0F,  0.5F,  -0.5F, 0.5F,  1.0F,  0.0F,  0.5F,  0.5F,  0.5F,  1.0F,
+    1.0F,  0.5F,  0.5F,  0.5F,  1.0F,  1.0F,  -0.5F, 0.5F,  0.5F,  0.0F,  1.0F,
+    -0.5F, -0.5F, 0.5F,  0.0F,  0.0F,  -0.5F, 0.5F,  0.5F,  1.0F,  0.0F,  -0.5F,
+    0.5F,  -0.5F, 1.0F,  1.0F,  -0.5F, -0.5F, -0.5F, 0.0F,  1.0F,  -0.5F, -0.5F,
+    -0.5F, 0.0F,  1.0F,  -0.5F, -0.5F, 0.5F,  0.0F,  0.0F,  -0.5F, 0.5F,  0.5F,
+    1.0F,  0.0F,  0.5F,  0.5F,  0.5F,  1.0F,  0.0F,  0.5F,  0.5F,  -0.5F, 1.0F,
+    1.0F,  0.5F,  -0.5F, -0.5F, 0.0F,  1.0F,  0.5F,  -0.5F, -0.5F, 0.0F,  1.0F,
+    0.5F,  -0.5F, 0.5F,  0.0F,  0.0F,  0.5F,  0.5F,  0.5F,  1.0F,  0.0F,  -0.5F,
+    -0.5F, -0.5F, 0.0F,  1.0F,  0.5F,  -0.5F, -0.5F, 1.0F,  1.0F,  0.5F,  -0.5F,
+    0.5F,  1.0F,  0.0F,  0.5F,  -0.5F, 0.5F,  1.0F,  0.0F,  -0.5F, -0.5F, 0.5F,
+    0.0F,  0.0F,  -0.5F, -0.5F, -0.5F, 0.0F,  1.0F,  -0.5F, 0.5F,  -0.5F, 0.0F,
+    1.0F,  0.5F,  0.5F,  -0.5F, 1.0F,  1.0F,  0.5F,  0.5F,  0.5F,  1.0F,  0.0F,
+    0.5F,  0.5F,  0.5F,  1.0F,  0.0F,  -0.5F, 0.5F,  0.5F,  0.0F,  0.0F,  -0.5F,
+    0.5F,  -0.5F, 0.0F,  1.0F
   };
-  std::array indices{ 0U, 1U, 3U, 1U, 2U, 3U };
 
-  GLuint vao1, vbo1, ebo1;
+  GLuint vao1, vbo1;
   glGenVertexArrays(1, &vao1);
   glGenBuffers(1, &vbo1);
-  glGenBuffers(1, &ebo1);
 
   glBindVertexArray(vao1);
 
@@ -82,40 +93,26 @@ int main()
   glBufferData(
       GL_ARRAY_BUFFER, sizeof(vertices1), vertices1.data(), GL_STATIC_DRAW);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo1);
-  glBufferData(
-      GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices.data(), GL_STATIC_DRAW);
-
   glVertexAttribPointer(
       0,
       3,
       GL_FLOAT,
       GL_FALSE,
-      8 * sizeof(decltype(vertices1)::value_type),
+      5 * sizeof(decltype(vertices1)::value_type),
       reinterpret_cast<void*>(0));
   glEnableVertexAttribArray(0);
 
   glVertexAttribPointer(
       1,
-      3,
+      2,
       GL_FLOAT,
       GL_FALSE,
-      8 * sizeof(decltype(vertices1)::value_type),
+      5 * sizeof(decltype(vertices1)::value_type),
       reinterpret_cast<void*>(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
-  glVertexAttribPointer(
-      2,
-      2,
-      GL_FLOAT,
-      GL_FALSE,
-      8 * sizeof(decltype(vertices1)::value_type),
-      reinterpret_cast<void*>(6 * sizeof(float)));
-  glEnableVertexAttribArray(2);
-
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
   stbi_set_flip_vertically_on_load(true);
 
@@ -123,9 +120,8 @@ int main()
   unsigned char* data = stbi_load(
       "assets/textures/container.jpg", &width, &height, &nrChannels, 0);
 
-  GLuint textureId1, textureId2;
+  GLuint textureId1;
   glGenTextures(1, &textureId1);
-  glGenTextures(1, &textureId2);
 
   glBindTexture(GL_TEXTURE_2D, textureId1);
   glTexImage2D(
@@ -142,29 +138,28 @@ int main()
 
   stbi_image_free(data);
 
-  data = stbi_load(
-      "assets/textures/awesomeface.png", &width, &height, &nrChannels, 0);
-
-  glBindTexture(GL_TEXTURE_2D, textureId2);
-  glTexImage2D(
-      GL_TEXTURE_2D,
-      0,
-      GL_RGB,
-      width,
-      height,
-      0,
-      GL_RGBA,
-      GL_UNSIGNED_BYTE,
-      data);
-  glGenerateMipmap(GL_TEXTURE_2D);
-
-  stbi_image_free(data);
-
   glBindTexture(GL_TEXTURE_2D, 0);
 
   shp.use();
   shp.setInt("texture1", 0);
-  shp.setInt("texture2", 1);
+
+  std::array cubePostitons{
+    glm::vec3(0.0F, 0.0F, 0.0F),    glm::vec3(2.0F, 5.0F, -15.0F),
+    glm::vec3(-1.5F, -2.2F, -2.5F), glm::vec3(-3.8F, -2.0F, -12.3F),
+    glm::vec3(2.4F, -0.4F, -3.5F),  glm::vec3(-1.7F, 3.0F, -7.5F),
+    glm::vec3(1.3F, -2.0F, -2.5F),  glm::vec3(1.5F, 2.0F, -2.5F),
+    glm::vec3(1.5F, 0.2F, -1.5F),   glm::vec3(-1.3F, 1.0F, -1.5F)
+  };
+
+  int modelLoc = glGetUniformLocation(shp.getProgramId(), "model");
+  int viewLoc = glGetUniformLocation(shp.getProgramId(), "view");
+  int projectionLoc = glGetUniformLocation(shp.getProgramId(), "projection");
+
+  float aspectRatio = static_cast<float>(windowWidth) / windowHeight;
+  glm::mat4 projection(1.0F);
+  projection = glm::perspective(glm::radians(60.0F), aspectRatio, 0.1F, 100.0F);
+
+  glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
   while (!glfwWindowShouldClose(window))
   {
@@ -173,19 +168,42 @@ int main()
     // Render Commands Start
 
     glClearColor(0.2F, 0.3F, 0.3F, 1.0F);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    shp.setFloat("mixRatio", mixRatio / 10.0F);
-
-    shp.use();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textureId2);
 
-    // glActiveTexture(textureId);
+    shp.use();
+
+    float t = static_cast<float>(glfwGetTime());
+    float radius = 10.0f;
+    float camX = sin(t) * radius;
+    float camZ = cos(t) * radius;
+
+    glm::vec3 cameraPos(camX, 0.0F, camZ);
+    glm::vec3 cameraLookAt(0.0F, 0.0F, 0.0F);
+    glm::vec3 cameraUpDir(0.0F, 1.0F, 0.0F);
+    glm::mat4 view = glm::lookAt(cameraPos, cameraLookAt, cameraUpDir);
+
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
     glBindVertexArray(vao1);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    for (std::size_t i = 0; i < cubePostitons.size(); i++)
+    {
+      glm::mat4 model(1.0F);
+      model = glm::translate(model, cubePostitons[i]);
+      if (i % 3 == 0)
+      {
+        model = glm::rotate(
+            model, glm::radians(32.0F * t), glm::vec3(0.5F, 1.0F, 0.0F));
+      }
+      model = glm::rotate(
+          model, glm::radians(20.0F * i), glm::vec3(1.0f, 0.3f, 0.5f));
+
+      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+
     glBindVertexArray(0);
 
     // Render Commands End
@@ -208,31 +226,6 @@ void processInput(GLFWwindow* window)
   {
     glfwSetWindowShouldClose(window, true);
   }
-
-  static int prevUpState = GLFW_RELEASE;
-  static int prevDownState = GLFW_RELEASE;
-
-  int upState = glfwGetKey(window, GLFW_KEY_UP);
-  int downState = glfwGetKey(window, GLFW_KEY_DOWN);
-
-  if (upState == GLFW_PRESS && prevUpState == GLFW_RELEASE)
-  {
-    if (mixRatio < 10)
-    {
-      mixRatio += 1;
-    }
-  }
-
-  if (downState == GLFW_PRESS && prevDownState == GLFW_RELEASE)
-  {
-    if (mixRatio > 0)
-    {
-      mixRatio -= 1;
-    }
-  }
-
-  prevUpState = upState;
-  prevDownState = downState;
 }
 
 void errorCallback(int error, const char* description)
