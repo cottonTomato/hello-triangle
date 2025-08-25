@@ -42,6 +42,8 @@ add_executable(
     ${PROJECT_NAME}_exe
     src/main.cpp
     src/Shader.cpp
+    src/Texture.cpp
+    src/Camera.cpp
     src/stb_image.cpp
     src/glad.c
 )

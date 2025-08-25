@@ -1,6 +1,7 @@
 #ifndef INCLUDE_INCLUDE_SHADER_HPP_
 #define INCLUDE_INCLUDE_SHADER_HPP_
 
+#include <glm/glm.hpp>
 #include <string>
 
 class Shader
@@ -11,18 +12,20 @@ class Shader
  public:
   Shader(const std::string& vertexPath, const std::string& fragmentPath);
 
-  void use() const;
+  ~Shader() noexcept;
 
-  unsigned int getProgramId() const;
+  void bind() const noexcept;
+  void unbind() const noexcept;
 
-  void setInt(const std::string& name, int value) const;
-  void setFloat(const std::string& name, float value) const;
-  void setBool(const std::string& name, bool value) const;
+  unsigned int getProgramId() const noexcept;
 
-  ~Shader();
+  void setInt(const std::string& name, int value) const noexcept;
+  void setFloat(const std::string& name, float value) const noexcept;
+  void setBool(const std::string& name, bool value) const noexcept;
+  void setMatrix(const std::string& name, glm::mat4 mat) const noexcept;
 
  private:
-  void checkStatus(unsigned int id, const std::string& type);
+  void checkStatus(unsigned int id, const std::string& type) const;
 };
 
 #endif  // INCLUDE_INCLUDE_SHADER_HPP_

@@ -2,6 +2,8 @@
 
 #include <array>
 #include <fstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -50,37 +52,51 @@ Shader::Shader(const std::string& vPath, const std::string& fPath)
   glDeleteShader(fragmentId);
 }
 
-GLuint Shader::getProgramId() const
-{
-  return programId;
-}
-
-void Shader::use() const
-{
-  glUseProgram(programId);
-}
-
-void Shader::setInt(const std::string& name, int value) const
-{
-  glUniform1i(glGetUniformLocation(programId, name.c_str()), value);
-}
-
-void Shader::setFloat(const std::string& name, float value) const
-{
-  glUniform1f(glGetUniformLocation(programId, name.c_str()), value);
-}
-
-void Shader::setBool(const std::string& name, bool value) const
-{
-  glUniform1i(glGetUniformLocation(programId, name.c_str()), value);
-}
-
-Shader::~Shader()
+Shader::~Shader() noexcept
 {
   glDeleteProgram(programId);
 }
 
-void Shader::checkStatus(GLuint id, const std::string& type)
+GLuint Shader::getProgramId() const noexcept
+{
+  return programId;
+}
+
+void Shader::bind() const noexcept
+{
+  glUseProgram(programId);
+}
+
+void Shader::unbind() const noexcept
+{
+  glUseProgram(0);
+}
+
+void Shader::setInt(const std::string& name, int value) const noexcept
+{
+  glUniform1i(glGetUniformLocation(programId, name.c_str()), value);
+}
+
+void Shader::setFloat(const std::string& name, float value) const noexcept
+{
+  glUniform1f(glGetUniformLocation(programId, name.c_str()), value);
+}
+
+void Shader::setBool(const std::string& name, bool value) const noexcept
+{
+  glUniform1i(glGetUniformLocation(programId, name.c_str()), value);
+}
+
+void Shader::setMatrix(const std::string& name, glm::mat4 mat) const noexcept
+{
+  glUniformMatrix4fv(
+      glGetUniformLocation(programId, name.c_str()),
+      1,
+      GL_FALSE,
+      glm::value_ptr(mat));
+}
+
+void Shader::checkStatus(GLuint id, const std::string& type) const
 {
   using namespace std::string_literals;
 

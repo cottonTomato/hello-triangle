@@ -1,3 +1,4 @@
+#include "Camera.hpp"
 #define GLFW_INCLUDE_NONE
 
 #include <GLFW/glfw3.h>
@@ -16,10 +17,15 @@
 constexpr int windowWidth = 800;
 constexpr int windowHeight = 600;
 
+Camera camera = CameraBuilder().setPosition(0.0F, 0.0F, 3.0F).build();
+float fov = 45.0F;
+
 void errorCallback(int error, const char* description);
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height);
 
 void processInput(GLFWwindow* window);
+void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 int main()
 {
@@ -51,6 +57,9 @@ int main()
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetCursorPosCallback(window, mouseCallback);
+  glfwSetScrollCallback(window, scrollCallback);
 
   if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
   {
@@ -62,6 +71,14 @@ int main()
   glEnable(GL_DEPTH_TEST);
 
   Shader shp("./shaders/vertex.glsl", "./shaders/fragment1.glsl");
+
+  std::array cubePostitons{
+    glm::vec3(0.0F, 0.0F, 0.0F),    glm::vec3(2.0F, 5.0F, -15.0F),
+    glm::vec3(-1.5F, -2.2F, -2.5F), glm::vec3(-3.8F, -2.0F, -12.3F),
+    glm::vec3(2.4F, -0.4F, -3.5F),  glm::vec3(-1.7F, 3.0F, -7.5F),
+    glm::vec3(1.3F, -2.0F, -2.5F),  glm::vec3(1.5F, 2.0F, -2.5F),
+    glm::vec3(1.5F, 0.2F, -1.5F),   glm::vec3(-1.3F, 1.0F, -1.5F)
+  };
 
   std::array vertices1{
     -0.5F, -0.5F, -0.5F, 0.0F,  0.0F,  0.5F,  -0.5F, -0.5F, 1.0F,  0.0F,  0.5F,
@@ -140,26 +157,11 @@ int main()
 
   glBindTexture(GL_TEXTURE_2D, 0);
 
-  shp.use();
+  shp.bind();
   shp.setInt("texture1", 0);
-
-  std::array cubePostitons{
-    glm::vec3(0.0F, 0.0F, 0.0F),    glm::vec3(2.0F, 5.0F, -15.0F),
-    glm::vec3(-1.5F, -2.2F, -2.5F), glm::vec3(-3.8F, -2.0F, -12.3F),
-    glm::vec3(2.4F, -0.4F, -3.5F),  glm::vec3(-1.7F, 3.0F, -7.5F),
-    glm::vec3(1.3F, -2.0F, -2.5F),  glm::vec3(1.5F, 2.0F, -2.5F),
-    glm::vec3(1.5F, 0.2F, -1.5F),   glm::vec3(-1.3F, 1.0F, -1.5F)
-  };
-
-  int modelLoc = glGetUniformLocation(shp.getProgramId(), "model");
-  int viewLoc = glGetUniformLocation(shp.getProgramId(), "view");
-  int projectionLoc = glGetUniformLocation(shp.getProgramId(), "projection");
+  shp.unbind();
 
   float aspectRatio = static_cast<float>(windowWidth) / windowHeight;
-  glm::mat4 projection(1.0F);
-  projection = glm::perspective(glm::radians(60.0F), aspectRatio, 0.1F, 100.0F);
-
-  glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
   while (!glfwWindowShouldClose(window))
   {
@@ -173,19 +175,16 @@ int main()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
 
-    shp.use();
+    shp.bind();
 
     float t = static_cast<float>(glfwGetTime());
-    float radius = 10.0f;
-    float camX = sin(t) * radius;
-    float camZ = cos(t) * radius;
 
-    glm::vec3 cameraPos(camX, 0.0F, camZ);
-    glm::vec3 cameraLookAt(0.0F, 0.0F, 0.0F);
-    glm::vec3 cameraUpDir(0.0F, 1.0F, 0.0F);
-    glm::mat4 view = glm::lookAt(cameraPos, cameraLookAt, cameraUpDir);
+    glm::mat4 view = camera.getViewMatrix();
+    shp.setMatrix("view", view);
 
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glm::mat4 projection(1.0F);
+    projection = glm::perspective(glm::radians(fov), aspectRatio, 0.1F, 100.0F);
+    shp.setMatrix("projection", projection);
 
     glBindVertexArray(vao1);
     for (std::size_t i = 0; i < cubePostitons.size(); i++)
@@ -200,7 +199,7 @@ int main()
       model = glm::rotate(
           model, glm::radians(20.0F * i), glm::vec3(1.0f, 0.3f, 0.5f));
 
-      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+      shp.setMatrix("model", model);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
@@ -226,6 +225,51 @@ void processInput(GLFWwindow* window)
   {
     glfwSetWindowShouldClose(window, true);
   }
+
+  static float lastFrame = 0.0F;
+  float currentFrame = static_cast<float>(glfwGetTime());
+  float deltaFrame = currentFrame - lastFrame;
+  lastFrame = currentFrame;
+
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    camera.updatePosition(Camera::FORWARD, deltaFrame);
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    camera.updatePosition(Camera::BACKWARD, deltaFrame);
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    camera.updatePosition(Camera::LEFT, deltaFrame);
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    camera.updatePosition(Camera::RIGHT, deltaFrame);
+}
+
+void mouseCallback(
+    [[maybe_unused]] GLFWwindow* window,
+    double xpos,
+    double ypos)
+{
+  float xposF = static_cast<float>(xpos), yposF = static_cast<float>(ypos);
+
+  static bool firstMouse = true;
+  static float lastX, lastY;
+  if (firstMouse)
+  {
+    lastX = xposF;
+    lastY = yposF;
+    firstMouse = false;
+  }
+
+  float xoffset = xposF - lastX, yoffset = lastY - yposF;
+  lastX = xposF, lastY = yposF;
+
+  camera.updateDirection(xoffset, yoffset);
+}
+
+void scrollCallback(
+    [[maybe_unused]] GLFWwindow* window,
+    [[maybe_unused]] double xoffset,
+    double yoffset)
+{
+  fov -= static_cast<float>(yoffset);
+  fov = std::clamp(fov, 1.0F, 60.0F);
 }
 
 void errorCallback(int error, const char* description)
