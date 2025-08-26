@@ -73,134 +73,145 @@ int main()
 
   glEnable(GL_DEPTH_TEST);
 
-  Shader shp("./shaders/vertex.glsl", "./shaders/fragment1.glsl");
+  Shader worldShader("./shaders/vertex1.glsl", "./shaders/fragment1.glsl");
+  Shader lightShader("./shaders/vertex2.glsl", "./shaders/fragment2.glsl");
 
-  std::array cubePostitons{
-    glm::vec3(0.0F, 0.0F, 0.0F),    glm::vec3(2.0F, 5.0F, -15.0F),
-    glm::vec3(-1.5F, -2.2F, -2.5F), glm::vec3(-3.8F, -2.0F, -12.3F),
-    glm::vec3(2.4F, -0.4F, -3.5F),  glm::vec3(-1.7F, 3.0F, -7.5F),
-    glm::vec3(1.3F, -2.0F, -2.5F),  glm::vec3(1.5F, 2.0F, -2.5F),
-    glm::vec3(1.5F, 0.2F, -1.5F),   glm::vec3(-1.3F, 1.0F, -1.5F)
+  std::array vertices{
+    -0.5F, -0.5F, -0.5F, 0.0F,  0.0F,  -1.0F, 0.0F,  0.0F,  0.5F,  -0.5F, -0.5F,
+    0.0F,  0.0F,  -1.0F, 1.0F,  0.0F,  0.5F,  0.5F,  -0.5F, 0.0F,  0.0F,  -1.0F,
+    1.0F,  1.0F,  0.5F,  0.5F,  -0.5F, 0.0F,  0.0F,  -1.0F, 1.0F,  1.0F,  -0.5F,
+    0.5F,  -0.5F, 0.0F,  0.0F,  -1.0F, 0.0F,  1.0F,  -0.5F, -0.5F, -0.5F, 0.0F,
+    0.0F,  -1.0F, 0.0F,  0.0F,  -0.5F, -0.5F, 0.5F,  0.0F,  0.0F,  1.0F,  0.0F,
+    0.0F,  0.5F,  -0.5F, 0.5F,  0.0F,  0.0F,  1.0F,  1.0F,  0.0F,  0.5F,  0.5F,
+    0.5F,  0.0F,  0.0F,  1.0F,  1.0F,  1.0F,  0.5F,  0.5F,  0.5F,  0.0F,  0.0F,
+    1.0F,  1.0F,  1.0F,  -0.5F, 0.5F,  0.5F,  0.0F,  0.0F,  1.0F,  0.0F,  1.0F,
+    -0.5F, -0.5F, 0.5F,  0.0F,  0.0F,  1.0F,  0.0F,  0.0F,  -0.5F, 0.5F,  0.5F,
+    -1.0F, 0.0F,  0.0F,  1.0F,  0.0F,  -0.5F, 0.5F,  -0.5F, -1.0F, 0.0F,  0.0F,
+    1.0F,  1.0F,  -0.5F, -0.5F, -0.5F, -1.0F, 0.0F,  0.0F,  0.0F,  1.0F,  -0.5F,
+    -0.5F, -0.5F, -1.0F, 0.0F,  0.0F,  0.0F,  1.0F,  -0.5F, -0.5F, 0.5F,  -1.0F,
+    0.0F,  0.0F,  0.0F,  0.0F,  -0.5F, 0.5F,  0.5F,  -1.0F, 0.0F,  0.0F,  1.0F,
+    0.0F,  0.5F,  0.5F,  0.5F,  1.0F,  0.0F,  0.0F,  1.0F,  0.0F,  0.5F,  0.5F,
+    -0.5F, 1.0F,  0.0F,  0.0F,  1.0F,  1.0F,  0.5F,  -0.5F, -0.5F, 1.0F,  0.0F,
+    0.0F,  0.0F,  1.0F,  0.5F,  -0.5F, -0.5F, 1.0F,  0.0F,  0.0F,  0.0F,  1.0F,
+    0.5F,  -0.5F, 0.5F,  1.0F,  0.0F,  0.0F,  0.0F,  0.0F,  0.5F,  0.5F,  0.5F,
+    1.0F,  0.0F,  0.0F,  1.0F,  0.0F,  -0.5F, -0.5F, -0.5F, 0.0F,  -1.0F, 0.0F,
+    0.0F,  1.0F,  0.5F,  -0.5F, -0.5F, 0.0F,  -1.0F, 0.0F,  1.0F,  1.0F,  0.5F,
+    -0.5F, 0.5F,  0.0F,  -1.0F, 0.0F,  1.0F,  0.0F,  0.5F,  -0.5F, 0.5F,  0.0F,
+    -1.0F, 0.0F,  1.0F,  0.0F,  -0.5F, -0.5F, 0.5F,  0.0F,  -1.0F, 0.0F,  0.0F,
+    0.0F,  -0.5F, -0.5F, -0.5F, 0.0F,  -1.0F, 0.0F,  0.0F,  1.0F,  -0.5F, 0.5F,
+    -0.5F, 0.0F,  1.0F,  0.0F,  0.0F,  1.0F,  0.5F,  0.5F,  -0.5F, 0.0F,  1.0F,
+    0.0F,  1.0F,  1.0F,  0.5F,  0.5F,  0.5F,  0.0F,  1.0F,  0.0F,  1.0F,  0.0F,
+    0.5F,  0.5F,  0.5F,  0.0F,  1.0F,  0.0F,  1.0F,  0.0F,  -0.5F, 0.5F,  0.5F,
+    0.0F,  1.0F,  0.0F,  0.0F,  0.0F,  -0.5F, 0.5F,  -0.5F, 0.0F,  1.0F,  0.0F,
+    0.0F,  1.0F
   };
 
-  std::array vertices1{
-    -0.5F, -0.5F, -0.5F, 0.0F,  0.0F,  0.5F,  -0.5F, -0.5F, 1.0F,  0.0F,  0.5F,
-    0.5F,  -0.5F, 1.0F,  1.0F,  0.5F,  0.5F,  -0.5F, 1.0F,  1.0F,  -0.5F, 0.5F,
-    -0.5F, 0.0F,  1.0F,  -0.5F, -0.5F, -0.5F, 0.0F,  0.0F,  -0.5F, -0.5F, 0.5F,
-    0.0F,  0.0F,  0.5F,  -0.5F, 0.5F,  1.0F,  0.0F,  0.5F,  0.5F,  0.5F,  1.0F,
-    1.0F,  0.5F,  0.5F,  0.5F,  1.0F,  1.0F,  -0.5F, 0.5F,  0.5F,  0.0F,  1.0F,
-    -0.5F, -0.5F, 0.5F,  0.0F,  0.0F,  -0.5F, 0.5F,  0.5F,  1.0F,  0.0F,  -0.5F,
-    0.5F,  -0.5F, 1.0F,  1.0F,  -0.5F, -0.5F, -0.5F, 0.0F,  1.0F,  -0.5F, -0.5F,
-    -0.5F, 0.0F,  1.0F,  -0.5F, -0.5F, 0.5F,  0.0F,  0.0F,  -0.5F, 0.5F,  0.5F,
-    1.0F,  0.0F,  0.5F,  0.5F,  0.5F,  1.0F,  0.0F,  0.5F,  0.5F,  -0.5F, 1.0F,
-    1.0F,  0.5F,  -0.5F, -0.5F, 0.0F,  1.0F,  0.5F,  -0.5F, -0.5F, 0.0F,  1.0F,
-    0.5F,  -0.5F, 0.5F,  0.0F,  0.0F,  0.5F,  0.5F,  0.5F,  1.0F,  0.0F,  -0.5F,
-    -0.5F, -0.5F, 0.0F,  1.0F,  0.5F,  -0.5F, -0.5F, 1.0F,  1.0F,  0.5F,  -0.5F,
-    0.5F,  1.0F,  0.0F,  0.5F,  -0.5F, 0.5F,  1.0F,  0.0F,  -0.5F, -0.5F, 0.5F,
-    0.0F,  0.0F,  -0.5F, -0.5F, -0.5F, 0.0F,  1.0F,  -0.5F, 0.5F,  -0.5F, 0.0F,
-    1.0F,  0.5F,  0.5F,  -0.5F, 1.0F,  1.0F,  0.5F,  0.5F,  0.5F,  1.0F,  0.0F,
-    0.5F,  0.5F,  0.5F,  1.0F,  0.0F,  -0.5F, 0.5F,  0.5F,  0.0F,  0.0F,  -0.5F,
-    0.5F,  -0.5F, 0.0F,  1.0F
-  };
+  GLuint cubeVAO, vbo;
+  glGenVertexArrays(1, &cubeVAO);
+  glGenBuffers(1, &vbo);
 
-  GLuint vao1, vbo1;
-  glGenVertexArrays(1, &vao1);
-  glGenBuffers(1, &vbo1);
+  glBindVertexArray(cubeVAO);
 
-  glBindVertexArray(vao1);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbo1);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(
-      GL_ARRAY_BUFFER, sizeof(vertices1), vertices1.data(), GL_STATIC_DRAW);
+      GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
+
+  std::size_t verticesElementSize = sizeof(decltype(vertices)::value_type);
 
   glVertexAttribPointer(
       0,
       3,
       GL_FLOAT,
       GL_FALSE,
-      5 * sizeof(decltype(vertices1)::value_type),
+      8 * verticesElementSize,
       reinterpret_cast<void*>(0));
   glEnableVertexAttribArray(0);
 
   glVertexAttribPointer(
       1,
+      3,
+      GL_FLOAT,
+      GL_FALSE,
+      8 * verticesElementSize,
+      reinterpret_cast<void*>(3 * verticesElementSize));
+  glEnableVertexAttribArray(1);
+
+  glVertexAttribPointer(
+      2,
       2,
       GL_FLOAT,
       GL_FALSE,
-      5 * sizeof(decltype(vertices1)::value_type),
-      reinterpret_cast<void*>(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
+      8 * verticesElementSize,
+      reinterpret_cast<void*>(6 * verticesElementSize));
+  glEnableVertexAttribArray(2);
+
+  GLuint lightVAO;
+  glGenVertexArrays(1, &lightVAO);
+  glBindVertexArray(lightVAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glVertexAttribPointer(
+      0,
+      3,
+      GL_FLOAT,
+      GL_FALSE,
+      8 * verticesElementSize,
+      reinterpret_cast<void*>(0));
+  glEnableVertexAttribArray(0);
 
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  stbi_set_flip_vertically_on_load(true);
-
-  int height, width, nrChannels;
-  unsigned char* data = stbi_load(
-      "assets/textures/container.jpg", &width, &height, &nrChannels, 0);
-
-  GLuint textureId1;
-  glGenTextures(1, &textureId1);
-
-  glBindTexture(GL_TEXTURE_2D, textureId1);
-  glTexImage2D(
-      GL_TEXTURE_2D,
-      0,
-      GL_RGB,
-      width,
-      height,
-      0,
-      GL_RGB,
-      GL_UNSIGNED_BYTE,
-      data);
-  glGenerateMipmap(GL_TEXTURE_2D);
-
-  stbi_image_free(data);
-
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  shp.bind();
-  shp.setInt("texture1", 0);
+  glm::vec3 fixedLightPos(1.2F, 1.0F, 2.0F);
 
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
 
-    // Render Commands Start
-
-    glClearColor(0.2F, 0.3F, 0.3F, 1.0F);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureId1);
-
-    shp.bind();
-
     float t = static_cast<float>(glfwGetTime());
+    glm::mat4 rotateLight(1.0F);
+    rotateLight = glm::rotate(
+        rotateLight, glm::radians(16.0F * t), glm::vec3(0.0F, 1.0F, 0.0F));
+    glm::vec3 lightPos =
+        glm::vec3(rotateLight * glm::vec4(fixedLightPos, 1.0F));
 
     glm::mat4 view = camera.getViewMatrix();
-    shp.setMatrix("view", view);
-
     glm::mat4 projection = cameraProjection.getProjectionMatrix();
-    shp.setMatrix("projection", projection);
 
-    glBindVertexArray(vao1);
-    for (std::size_t i = 0; i < cubePostitons.size(); i++)
-    {
-      glm::mat4 model(1.0F);
-      model = glm::translate(model, cubePostitons[i]);
-      if (i % 3 == 0)
-      {
-        model = glm::rotate(
-            model, glm::radians(32.0F * t), glm::vec3(0.5F, 1.0F, 0.0F));
-      }
-      model = glm::rotate(
-          model, glm::radians(20.0F * i), glm::vec3(1.0f, 0.3f, 0.5f));
+    glm::mat4 cubeModel(1.0F);
+    cubeModel = glm::translate(cubeModel, glm::vec3(0.0F, 0.0F, 0.0F));
+    glm::mat3 normalMat =
+        glm::transpose(glm::inverse(glm::mat3(view * cubeModel)));
 
-      shp.setMatrix("model", model);
-      glDrawArrays(GL_TRIANGLES, 0, 36);
-    }
+    glm::mat4 lightCubeModel(1.0f);
+    lightCubeModel = glm::translate(lightCubeModel, lightPos);
+    lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f));
+
+    // Render Commands Start
+
+    glClearColor(0.1F, 0.1F, 0.1F, 1.0F);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    worldShader.bind();
+    worldShader.setVec3("lightPos", lightPos);
+    worldShader.setVec3("objectColor", 1.0F, 0.5F, 0.31F);
+    worldShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+    worldShader.setMat4("view", view);
+    worldShader.setMat4("projection", projection);
+    worldShader.setMat4("model", cubeModel);
+    worldShader.setMat3("normalMat", normalMat);
+
+    glBindVertexArray(cubeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    lightShader.bind();
+    lightShader.setMat4("view", view);
+    lightShader.setMat4("projection", projection);
+    lightShader.setMat4("model", lightCubeModel);
+
+    glBindVertexArray(lightVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
     glBindVertexArray(0);
 
     // Render Commands End
@@ -209,8 +220,9 @@ int main()
     glfwPollEvents();
   }
 
-  glDeleteVertexArrays(1, &vao1);
-  glDeleteBuffers(1, &vbo1);
+  glDeleteVertexArrays(1, &cubeVAO);
+  glDeleteVertexArrays(1, &lightVAO);
+  glDeleteBuffers(1, &vbo);
 
   glfwTerminate();
 
