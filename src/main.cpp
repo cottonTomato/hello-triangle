@@ -76,7 +76,7 @@ int main()
   glEnable(GL_DEPTH_TEST);
 
   Shader worldShader("./shaders/vertex1.glsl", "./shaders/fragment1.glsl");
-  // Shader lightShader("./shaders/vertex2.glsl", "./shaders/fragment2.glsl");
+  Shader lightShader("./shaders/vertex2.glsl", "./shaders/fragment2.glsl");
 
   std::array vertices{
     -0.5F, -0.5F, -0.5F, 0.0F,  0.0F,  -1.0F, 0.0F,  0.0F,  0.5F,  -0.5F, -0.5F,
@@ -154,19 +154,21 @@ int main()
       reinterpret_cast<void*>(6 * verticesElementSize));
   glEnableVertexAttribArray(2);
 
-  // GLuint lightVAO;
-  // glGenVertexArrays(1, &lightVAO);
-  // glBindVertexArray(lightVAO);
-  //
-  // glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  // glVertexAttribPointer(
-  //     0,
-  //     3,
-  //     GL_FLOAT,
-  //     GL_FALSE,
-  //     8 * verticesElementSize,
-  //     reinterpret_cast<void*>(0));
-  // glEnableVertexAttribArray(0);
+  glm::vec3 lightPos(1.2F, 1.0F, 2.0F);
+
+  GLuint lightVAO;
+  glGenVertexArrays(1, &lightVAO);
+  glBindVertexArray(lightVAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glVertexAttribPointer(
+      0,
+      3,
+      GL_FLOAT,
+      GL_FALSE,
+      8 * verticesElementSize,
+      reinterpret_cast<void*>(0));
+  glEnableVertexAttribArray(0);
 
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -178,30 +180,16 @@ int main()
   worldShader.setInt("material.diffuse", 0);
   worldShader.setInt("material.specular", 1);
 
-  // glm::vec3 fixedLightPos(1.2F, 1.0F, 2.0F);
-
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
 
-    // float t = static_cast<float>(glfwGetTime());
-    // glm::mat4 rotateLight(1.0F);
-    // rotateLight = glm::rotate(
-    //     rotateLight, glm::radians(16.0F * t), glm::vec3(0.0F, 1.0F, 0.0F));
-    // glm::vec3 lightPos =
-    //     glm::vec3(rotateLight * glm::vec4(fixedLightPos, 1.0F));
-
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = cameraProjection.getProjectionMatrix();
 
-    // glm::mat4 cubeModel(1.0F);
-    // cubeModel = glm::translate(cubeModel, glm::vec3(0.0F, 0.0F, 0.0F));
-    // glm::mat3 normalMat =
-    //     glm::transpose(glm::inverse(glm::mat3(view * cubeModel)));
-
-    // glm::mat4 lightCubeModel(1.0f);
-    // lightCubeModel = glm::translate(lightCubeModel, lightPos);
-    // lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f));
+    glm::mat4 lightCubeModel(1.0f);
+    lightCubeModel = glm::translate(lightCubeModel, lightPos);
+    lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f));
 
     // Render Commands Start
 
@@ -211,11 +199,17 @@ int main()
     worldShader.bind();
     worldShader.setMat4("view", view);
     worldShader.setMat4("projection", projection);
+
     worldShader.setFloat("material.shininess", 32.0F);
-    worldShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+
+    worldShader.setVec3(
+        "light.position", glm::vec3(view * glm::vec4(lightPos, 1.0F)));
     worldShader.setVec3("light.ambient", 0.2F, 0.2F, 0.2F);
     worldShader.setVec3("light.diffuse", 0.5F, 0.5F, 0.5F);
     worldShader.setVec3("light.specular", 1.0F, 1.0F, 1.0F);
+    worldShader.setFloat("light.kc", 1.0f);
+    worldShader.setFloat("light.kl", 0.09);
+    worldShader.setFloat("light.kq", 0.032);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -227,26 +221,26 @@ int main()
     for (std::size_t i = 0; i < cubePositions.size(); i++)
     {
       float angle = 20.0f * i;
-      glm::mat4 model = glm::mat4(1.0f);
-      model = glm::translate(model, cubePositions[i]);
-      model =
-          glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+      glm::mat4 cubeModel = glm::mat4(1.0f);
+      cubeModel = glm::translate(cubeModel, cubePositions[i]);
+      cubeModel = glm::rotate(
+          cubeModel, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
       glm::mat3 normalMat =
-          glm::transpose(glm::inverse(glm::mat3(view * model)));
+          glm::transpose(glm::inverse(glm::mat3(view * cubeModel)));
 
-      worldShader.setMat4("model", model);
+      worldShader.setMat4("model", cubeModel);
       worldShader.setMat3("normalMat", normalMat);
 
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-    // lightShader.bind();
-    // lightShader.setMat4("view", view);
-    // lightShader.setMat4("projection", projection);
-    // lightShader.setMat4("model", lightCubeModel);
-    //
-    // glBindVertexArray(lightVAO);
-    // glDrawArrays(GL_TRIANGLES, 0, 36);
+    lightShader.bind();
+    lightShader.setMat4("view", view);
+    lightShader.setMat4("projection", projection);
+    lightShader.setMat4("model", lightCubeModel);
+
+    glBindVertexArray(lightVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     // Render Commands End
 
@@ -256,8 +250,8 @@ int main()
 
   glDeleteTextures(1, &specularMap);
   glDeleteTextures(1, &diffuseMap);
+  glDeleteVertexArrays(1, &lightVAO);
   glDeleteVertexArrays(1, &cubeVAO);
-  // glDeleteVertexArrays(1, &lightVAO);
   glDeleteBuffers(1, &vbo);
 
   glfwTerminate();
