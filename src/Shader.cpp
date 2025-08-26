@@ -99,6 +99,22 @@ void Shader::setVec3(const std::string& name, float x, float y, float z)
   glUniform3f(glGetUniformLocation(programId, name.c_str()), x, y, z);
 }
 
+void Shader::setVec4(const std::string& name, glm::vec4 vec) const noexcept
+{
+  glUniform4fv(
+      glGetUniformLocation(programId, name.c_str()), 1, glm::value_ptr(vec));
+}
+
+void Shader::setVec4(
+    const std::string& name,
+    float x,
+    float y,
+    float z,
+    float w) const noexcept
+{
+  glUniform4f(glGetUniformLocation(programId, name.c_str()), x, y, z, w);
+}
+
 void Shader::setMat3(const std::string& name, glm::mat3 mat) const noexcept
 {
   glUniformMatrix3fv(

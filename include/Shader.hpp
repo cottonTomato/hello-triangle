@@ -25,6 +25,9 @@ class Shader
   void setVec3(const std::string& name, glm::vec3 vec) const noexcept;
   void setVec3(const std::string& name, float x, float y, float z)
       const noexcept;
+  void setVec4(const std::string& name, glm::vec4 vec) const noexcept;
+  void setVec4(const std::string& name, float x, float y, float z, float w)
+      const noexcept;
   void setMat3(const std::string& name, glm::mat3 mat) const noexcept;
   void setMat4(const std::string& name, glm::mat4 mat) const noexcept;
 
