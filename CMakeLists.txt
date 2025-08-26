@@ -44,6 +44,7 @@ add_executable(
     src/Shader.cpp
     src/Texture.cpp
     src/Camera.cpp
+    src/Projection.cpp
     src/stb_image.cpp
     src/glad.c
 )

@@ -1,4 +1,3 @@
-#include "Camera.hpp"
 #define GLFW_INCLUDE_NONE
 
 #include <GLFW/glfw3.h>
@@ -7,18 +6,21 @@
 #include <cstdlib>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#include "Camera.hpp"
+#include "Projection.hpp"
 #include "Shader.hpp"
 #include "glad/glad.h"
 #include "stb/image.h"
 
 constexpr int windowWidth = 800;
 constexpr int windowHeight = 600;
+constexpr float aspectRatio = static_cast<float>(windowWidth) / windowHeight;
 
 Camera camera = CameraBuilder().setPosition(0.0F, 0.0F, 3.0F).build();
-float fov = 45.0F;
+Projection cameraProjection =
+    ProjectionBuilder().withAspectRatio(aspectRatio).build();
 
 void errorCallback(int error, const char* description);
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -55,6 +57,7 @@ int main()
 
     return EXIT_FAILURE;
   }
+
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -159,9 +162,6 @@ int main()
 
   shp.bind();
   shp.setInt("texture1", 0);
-  shp.unbind();
-
-  float aspectRatio = static_cast<float>(windowWidth) / windowHeight;
 
   while (!glfwWindowShouldClose(window))
   {
@@ -182,8 +182,7 @@ int main()
     glm::mat4 view = camera.getViewMatrix();
     shp.setMatrix("view", view);
 
-    glm::mat4 projection(1.0F);
-    projection = glm::perspective(glm::radians(fov), aspectRatio, 0.1F, 100.0F);
+    glm::mat4 projection = cameraProjection.getProjectionMatrix();
     shp.setMatrix("projection", projection);
 
     glBindVertexArray(vao1);
@@ -202,7 +201,6 @@ int main()
       shp.setMatrix("model", model);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
-
     glBindVertexArray(0);
 
     // Render Commands End
@@ -268,8 +266,7 @@ void scrollCallback(
     [[maybe_unused]] double xoffset,
     double yoffset)
 {
-  fov -= static_cast<float>(yoffset);
-  fov = std::clamp(fov, 1.0F, 60.0F);
+  cameraProjection.updateFov(static_cast<float>(yoffset));
 }
 
 void errorCallback(int error, const char* description)
