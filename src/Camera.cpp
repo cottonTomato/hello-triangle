@@ -42,7 +42,7 @@ void Camera::updatePosition(
   }
 }
 
-void Camera::updateDirection(float xoffset, float yoffset) noexcept
+void Camera::updateDirection(float xoffset, float yoffset)
 {
   xoffset *= sensitivity;
   yoffset *= sensitivity;
@@ -55,12 +55,37 @@ void Camera::updateDirection(float xoffset, float yoffset) noexcept
   _updateDirection();
 }
 
+glm::vec3 Camera::getPosition() const noexcept
+{
+  return position;
+}
+
+glm::vec3 Camera::getFront() const noexcept
+{
+  return front;
+}
+
+glm::vec3 Camera::getUp() const noexcept
+{
+  return up;
+}
+
+glm::vec3 Camera::getWorldUp() const noexcept
+{
+  return worldUp;
+}
+
+glm::vec3 Camera::getRight() const noexcept
+{
+  return right;
+}
+
 void Camera::_updateDirection()
 {
   glm::vec3 newFront(
-      cos(glm::radians(pitch)) * cos(glm::radians(yaw)),
-      sin(glm::radians(pitch)),
-      cos(glm::radians(pitch)) * sin(glm::radians(yaw)));
+      glm::cos(glm::radians(pitch)) * glm::cos(glm::radians(yaw)),
+      glm::sin(glm::radians(pitch)),
+      glm::cos(glm::radians(pitch)) * glm::sin(glm::radians(yaw)));
 
   front = glm::normalize(newFront);
   right = glm::normalize(glm::cross(front, worldUp));

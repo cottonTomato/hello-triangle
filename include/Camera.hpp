@@ -41,7 +41,13 @@ class Camera
 
   glm::mat4 getViewMatrix() const;
   void updatePosition(MovementDirection direction, float deltaTime) noexcept;
-  void updateDirection(float xoffset, float yoffset) noexcept;
+  void updateDirection(float xoffset, float yoffset);
+
+  glm::vec3 getPosition() const noexcept;
+  glm::vec3 getFront() const noexcept;
+  glm::vec3 getUp() const noexcept;
+  glm::vec3 getWorldUp() const noexcept;
+  glm::vec3 getRight() const noexcept;
 
  private:
   void _updateDirection();

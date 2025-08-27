@@ -76,7 +76,6 @@ int main()
   glEnable(GL_DEPTH_TEST);
 
   Shader worldShader("./shaders/vertex1.glsl", "./shaders/fragment1.glsl");
-  Shader lightShader("./shaders/vertex2.glsl", "./shaders/fragment2.glsl");
 
   std::array vertices{
     -0.5F, -0.5F, -0.5F, 0.0F,  0.0F,  -1.0F, 0.0F,  0.0F,  0.5F,  -0.5F, -0.5F,
@@ -115,13 +114,13 @@ int main()
     glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)
   };
 
-  GLuint cubeVAO, vbo;
+  GLuint cubeVAO, VBO;
   glGenVertexArrays(1, &cubeVAO);
-  glGenBuffers(1, &vbo);
+  glGenBuffers(1, &VBO);
 
   glBindVertexArray(cubeVAO);
 
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(
       GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
 
@@ -154,22 +153,6 @@ int main()
       reinterpret_cast<void*>(6 * verticesElementSize));
   glEnableVertexAttribArray(2);
 
-  glm::vec3 lightPos(1.2F, 1.0F, 2.0F);
-
-  GLuint lightVAO;
-  glGenVertexArrays(1, &lightVAO);
-  glBindVertexArray(lightVAO);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glVertexAttribPointer(
-      0,
-      3,
-      GL_FLOAT,
-      GL_FALSE,
-      8 * verticesElementSize,
-      reinterpret_cast<void*>(0));
-  glEnableVertexAttribArray(0);
-
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -187,10 +170,6 @@ int main()
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = cameraProjection.getProjectionMatrix();
 
-    glm::mat4 lightCubeModel(1.0f);
-    lightCubeModel = glm::translate(lightCubeModel, lightPos);
-    lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f));
-
     // Render Commands Start
 
     glClearColor(0.1F, 0.1F, 0.1F, 1.0F);
@@ -202,14 +181,16 @@ int main()
 
     worldShader.setFloat("material.shininess", 32.0F);
 
-    worldShader.setVec3(
-        "light.position", glm::vec3(view * glm::vec4(lightPos, 1.0F)));
-    worldShader.setVec3("light.ambient", 0.2F, 0.2F, 0.2F);
-    worldShader.setVec3("light.diffuse", 0.5F, 0.5F, 0.5F);
+    worldShader.setVec3("light.position", glm::vec3(0.0F));
+    worldShader.setVec3("light.direction", glm::vec3(0.0F, 0.0F, -1.0F));
+    worldShader.setFloat("light.innerCutoff", glm::cos(glm::radians(10.0F)));
+    worldShader.setFloat("light.outerCutoff", glm::cos(glm::radians(12.4F)));
+    worldShader.setVec3("light.ambient", 0.1F, 0.1F, 0.1F);
+    worldShader.setVec3("light.diffuse", 0.8F, 0.8F, 0.5F);
     worldShader.setVec3("light.specular", 1.0F, 1.0F, 1.0F);
-    worldShader.setFloat("light.kc", 1.0f);
-    worldShader.setFloat("light.kl", 0.09);
-    worldShader.setFloat("light.kq", 0.032);
+    worldShader.setFloat("light.kc", 1.0F);
+    worldShader.setFloat("light.kl", 0.09F);
+    worldShader.setFloat("light.kq", 0.032F);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -234,14 +215,6 @@ int main()
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-    lightShader.bind();
-    lightShader.setMat4("view", view);
-    lightShader.setMat4("projection", projection);
-    lightShader.setMat4("model", lightCubeModel);
-
-    glBindVertexArray(lightVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-
     // Render Commands End
 
     glfwSwapBuffers(window);
@@ -250,9 +223,8 @@ int main()
 
   glDeleteTextures(1, &specularMap);
   glDeleteTextures(1, &diffuseMap);
-  glDeleteVertexArrays(1, &lightVAO);
   glDeleteVertexArrays(1, &cubeVAO);
-  glDeleteBuffers(1, &vbo);
+  glDeleteBuffers(1, &VBO);
 
   glfwTerminate();
 
