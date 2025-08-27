@@ -91,9 +91,10 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene)
   {
     aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
 
-    loadMaterialTexture(mat, aiTextureType_DIFFUSE, Texture::DIFFUSE, textures);
     loadMaterialTexture(
-        mat, aiTextureType_SPECULAR, Texture::SPECULAR, textures);
+        mat, aiTextureType_DIFFUSE, Texture::Type::DIFFUSE, textures);
+    loadMaterialTexture(
+        mat, aiTextureType_SPECULAR, Texture::Type::SPECULAR, textures);
   }
 
   meshes.emplace_back(

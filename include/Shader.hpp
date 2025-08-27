@@ -11,8 +11,13 @@ class Shader
 
  public:
   Shader(const std::string& vertexPath, const std::string& fragmentPath);
-
   ~Shader() noexcept;
+
+  Shader(const Shader& other) = delete;
+  Shader& operator=(const Shader& other) = delete;
+
+  Shader(Shader&& other);
+  Shader& operator=(Shader&& other);
 
   void bind() const noexcept;
   void unbind() const noexcept;

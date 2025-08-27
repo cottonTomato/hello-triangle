@@ -2,10 +2,10 @@
 
 #include <GLFW/glfw3.h>
 
-#include <cstdlib>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
+#include <sstream>
+#include <stdexcept>
 
 #include "Camera.hpp"
 #include "Model.hpp"
@@ -105,7 +105,7 @@ int main()
     glfwPollEvents();
   }
 
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 void processInput(GLFWwindow* window)
@@ -121,13 +121,13 @@ void processInput(GLFWwindow* window)
   lastFrame = currentFrame;
 
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    camera.updatePosition(Camera::MovementDirection::FORWARD, deltaFrame);
+    camera.updatePosition(Camera::MoveDir::FORWARD, deltaFrame);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    camera.updatePosition(Camera::MovementDirection::BACKWARD, deltaFrame);
+    camera.updatePosition(Camera::MoveDir::BACKWARD, deltaFrame);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    camera.updatePosition(Camera::MovementDirection::LEFT, deltaFrame);
+    camera.updatePosition(Camera::MoveDir::LEFT, deltaFrame);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    camera.updatePosition(Camera::MovementDirection::RIGHT, deltaFrame);
+    camera.updatePosition(Camera::MoveDir::RIGHT, deltaFrame);
 }
 
 void mouseCallback(
@@ -160,15 +160,18 @@ void scrollCallback(
   projection.updateFov(static_cast<float>(yoffset));
 }
 
-void errorCallback(int error, const char* description)
-{
-  std::cerr << "GLFW Error (" << error << "): " << description << std::endl;
-}
-
 void frameBufferSizeCallback(
     [[maybe_unused]] GLFWwindow* window,
     int width,
     int height)
 {
   glViewport(0, 0, width, height);
+}
+
+void errorCallback(int error, const char* description)
+{
+  std::ostringstream oss;
+  oss << "ERROR::GLFW (" << error << "): " << description;
+
+  throw std::runtime_error(oss.str());
 }

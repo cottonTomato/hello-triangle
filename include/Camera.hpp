@@ -31,7 +31,7 @@ class Camera
   static constexpr float MAX_PITCH = 89.0F;
   static constexpr float MIN_PITCH = -89.0F;
 
-  enum class MovementDirection
+  enum class MoveDir
   {
     FORWARD,
     BACKWARD,
@@ -40,7 +40,7 @@ class Camera
   };
 
   glm::mat4 getViewMatrix() const;
-  void updatePosition(MovementDirection direction, float deltaTime) noexcept;
+  void updatePosition(MoveDir direction, float deltaTime) noexcept;
   void updateDirection(float xoffset, float yoffset);
 
   glm::vec3 getPosition() const noexcept;

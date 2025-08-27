@@ -57,6 +57,24 @@ Shader::~Shader() noexcept
   glDeleteProgram(programId);
 }
 
+Shader::Shader(Shader&& other) : programId(other.programId)
+{
+  other.programId = 0;
+}
+
+Shader& Shader::operator=(Shader&& other)
+{
+  if (this != &other)
+  {
+    glDeleteProgram(programId);
+
+    programId = other.programId;
+
+    other.programId = 0;
+  }
+  return *this;
+}
+
 GLuint Shader::getProgramId() const noexcept
 {
   return programId;

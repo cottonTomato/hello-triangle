@@ -28,17 +28,15 @@ glm::mat4 Camera::getViewMatrix() const
   return glm::lookAt(position, position + front, up);
 }
 
-void Camera::updatePosition(
-    Camera::MovementDirection direction,
-    float deltaTime) noexcept
+void Camera::updatePosition(Camera::MoveDir direction, float deltaTime) noexcept
 {
   float velocity = speed * deltaTime;
   switch (direction)
   {
-    case MovementDirection::FORWARD: position += front * velocity; break;
-    case MovementDirection::BACKWARD: position -= front * velocity; break;
-    case MovementDirection::LEFT: position -= right * velocity; break;
-    case MovementDirection::RIGHT: position += right * velocity; break;
+    case MoveDir::FORWARD: position += front * velocity; break;
+    case MoveDir::BACKWARD: position -= front * velocity; break;
+    case MoveDir::LEFT: position -= right * velocity; break;
+    case MoveDir::RIGHT: position += right * velocity; break;
   }
 }
 

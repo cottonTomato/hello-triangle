@@ -114,8 +114,8 @@ void Mesh::draw(const Shader& shader) const
     int number;
     switch (textures[i]->getType())
     {
-      case Texture::DIFFUSE: number = diffuseNr++; break;
-      case Texture::SPECULAR: number = specularNr++; break;
+      case Texture::Type::DIFFUSE: number = diffuseNr++; break;
+      case Texture::Type::SPECULAR: number = specularNr++; break;
     }
 
     shader.setInt(

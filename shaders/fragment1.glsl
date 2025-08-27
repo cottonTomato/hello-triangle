@@ -10,7 +10,6 @@ struct Material
 struct DirLight
 {
   vec3 direction;
-
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
@@ -19,31 +18,26 @@ struct DirLight
 struct PointLight
 {
   vec3 position;
-
-  float kc;
-  float kl;
-  float kq;
-
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
+  float kc;
+  float kl;
+  float kq;
 };
 
 struct SpotLight
 {
   vec3 position;
   vec3 direction;
-
-  float innerCutoff;
-  float outerCutoff;
-
-  float kc;
-  float kl;
-  float kq;
-
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
+  float kc;
+  float kl;
+  float kq;
+  float innerCutoff;
+  float outerCutoff;
 };
 
 in vec3 Position;

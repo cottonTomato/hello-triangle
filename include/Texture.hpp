@@ -9,7 +9,7 @@ class Texture
   unsigned int textureId;
 
  public:
-  enum Type
+  enum class Type
   {
     DIFFUSE,
     SPECULAR

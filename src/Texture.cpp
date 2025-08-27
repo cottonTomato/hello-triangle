@@ -92,7 +92,7 @@ std::string Texture::typeStr() const noexcept
 {
   switch (textureType)
   {
-    case DIFFUSE: return "texture_diffuse";
-    case SPECULAR: return "texture_specular";
+    case Type::DIFFUSE: return "texture_diffuse";
+    case Type::SPECULAR: return "texture_specular";
   }
 }
