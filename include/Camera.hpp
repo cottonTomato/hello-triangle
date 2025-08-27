@@ -31,7 +31,7 @@ class Camera
   static constexpr float MAX_PITCH = 89.0F;
   static constexpr float MIN_PITCH = -89.0F;
 
-  enum MovementDirection
+  enum class MovementDirection
   {
     FORWARD,
     BACKWARD,

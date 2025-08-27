@@ -5,6 +5,7 @@ cmake-build-*/
 out/
 
 main
+assets
 
 [Tt]esting/
 

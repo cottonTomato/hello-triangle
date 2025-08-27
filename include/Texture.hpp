@@ -3,21 +3,33 @@
 
 #include <string>
 
-#include "Shader.hpp"
-
 class Texture
 {
  private:
   unsigned int textureId;
 
  public:
-  Texture(const std::string& path);
+  enum Type
+  {
+    DIFFUSE,
+    SPECULAR
+  };
 
-  unsigned int getId() const;
+  Texture(const std::string& path, Type type);
+  ~Texture() noexcept;
 
-  void bind(unsigned int unit) const;
+  Texture(const Texture& other) = delete;
+  Texture& operator=(const Texture& other) = delete;
 
-  void unbind(unsigned int unit);
+  Texture(Texture&& other);
+  Texture& operator=(Texture&& other);
+
+  unsigned int getId() const noexcept;
+  Type getType() const noexcept;
+  std::string typeStr() const noexcept;
+
+ private:
+  Type textureType;
 };
 
 #endif  // INCLUDE_INCLUDE_TEXTURE_HPP_

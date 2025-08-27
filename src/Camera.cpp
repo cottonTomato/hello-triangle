@@ -35,10 +35,10 @@ void Camera::updatePosition(
   float velocity = speed * deltaTime;
   switch (direction)
   {
-    case FORWARD: position += front * velocity; break;
-    case BACKWARD: position -= front * velocity; break;
-    case LEFT: position -= right * velocity; break;
-    case RIGHT: position += right * velocity; break;
+    case MovementDirection::FORWARD: position += front * velocity; break;
+    case MovementDirection::BACKWARD: position -= front * velocity; break;
+    case MovementDirection::LEFT: position -= right * velocity; break;
+    case MovementDirection::RIGHT: position += right * velocity; break;
   }
 }
 

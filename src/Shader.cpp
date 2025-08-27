@@ -87,6 +87,17 @@ void Shader::setBool(const std::string& name, bool value) const noexcept
   glUniform1i(glGetUniformLocation(programId, name.c_str()), value);
 }
 
+void Shader::setVec2(const std::string& name, glm::vec2 vec) const noexcept
+{
+  glUniform2fv(
+      glGetUniformLocation(programId, name.c_str()), 1, glm::value_ptr(vec));
+}
+
+void Shader::setVec2(const std::string& name, float x, float y) const noexcept
+{
+  glUniform2f(glGetUniformLocation(programId, name.c_str()), x, y);
+}
+
 void Shader::setVec3(const std::string& name, glm::vec3 vec) const noexcept
 {
   glUniform3fv(
@@ -113,6 +124,15 @@ void Shader::setVec4(
     float w) const noexcept
 {
   glUniform4f(glGetUniformLocation(programId, name.c_str()), x, y, z, w);
+}
+
+void Shader::setMat2(const std::string& name, glm::mat2 mat) const noexcept
+{
+  glUniformMatrix2fv(
+      glGetUniformLocation(programId, name.c_str()),
+      1,
+      GL_FALSE,
+      glm::value_ptr(mat));
 }
 
 void Shader::setMat3(const std::string& name, glm::mat3 mat) const noexcept

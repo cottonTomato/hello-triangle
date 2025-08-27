@@ -6,7 +6,7 @@
 #include "glad/glad.h"
 #include "stb/image.h"
 
-Texture::Texture(const std::string& path)
+Texture::Texture(const std::string& path, Type type) : textureType(type)
 {
   int width, height, nrChannels;
   std::unique_ptr<unsigned char, decltype(&stbi_image_free)> image(
@@ -53,19 +53,46 @@ Texture::Texture(const std::string& path)
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-GLuint Texture::getId() const
+Texture::~Texture() noexcept
+{
+  glDeleteTextures(1, &textureId);
+}
+
+Texture::Texture(Texture&& other)
+    : textureId(other.textureId),
+      textureType(other.textureType)
+{
+  other.textureId = 0;
+}
+
+Texture& Texture::operator=(Texture&& other)
+{
+  if (this != &other)
+  {
+    glDeleteTextures(1, &textureId);
+
+    textureId = other.textureId;
+
+    other.textureId = 0;
+  }
+  return *this;
+}
+
+GLuint Texture::getId() const noexcept
 {
   return textureId;
 }
 
-void Texture::bind(GLuint unit) const
+Texture::Type Texture::getType() const noexcept
 {
-  glActiveTexture(GL_TEXTURE0 + unit);
-  glBindTexture(GL_TEXTURE_2D, textureId);
+  return textureType;
 }
 
-void Texture::unbind(GLuint unit)
+std::string Texture::typeStr() const noexcept
 {
-  glActiveTexture(GL_TEXTURE0 + unit);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  switch (textureType)
+  {
+    case DIFFUSE: return "texture_diffuse";
+    case SPECULAR: return "texture_specular";
+  }
 }

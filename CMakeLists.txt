@@ -35,6 +35,7 @@ add_compile_options(
 find_package(glfw3 3.3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glm 1.0.1 REQUIRED)
+find_package(assimp 6.0.2 REQUIRED)
 
 # -- Executable
 
@@ -43,13 +44,18 @@ add_executable(
     src/main.cpp
     src/Shader.cpp
     src/Texture.cpp
+    src/Mesh.cpp
+    src/Model.cpp
     src/Camera.cpp
     src/Projection.cpp
     src/stb_image.cpp
     src/glad.c
 )
 target_include_directories(${PROJECT_NAME}_exe PRIVATE include)
-target_link_libraries(${PROJECT_NAME}_exe PRIVATE glfw OpenGL::GL glm::glm)
+target_link_libraries(
+    ${PROJECT_NAME}_exe
+    PRIVATE glfw OpenGL::GL glm::glm assimp::assimp
+)
 
 set_target_properties(${PROJECT_NAME}_exe PROPERTIES OUTPUT_NAME main)
 target_compile_features(${PROJECT_NAME}_exe PRIVATE cxx_std_20 c_std_99)
