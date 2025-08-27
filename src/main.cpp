@@ -1,3 +1,4 @@
+#include <format>
 #define GLFW_INCLUDE_NONE
 
 #include <GLFW/glfw3.h>
@@ -76,6 +77,7 @@ int main()
   glEnable(GL_DEPTH_TEST);
 
   Shader worldShader("./shaders/vertex1.glsl", "./shaders/fragment1.glsl");
+  Shader lightShader("./shaders/vertex2.glsl", "./shaders/fragment2.glsl");
 
   std::array vertices{
     -0.5F, -0.5F, -0.5F, 0.0F,  0.0F,  -1.0F, 0.0F,  0.0F,  0.5F,  -0.5F, -0.5F,
@@ -114,13 +116,13 @@ int main()
     glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)
   };
 
-  GLuint cubeVAO, VBO;
+  GLuint cubeVAO, cubeVBO;
   glGenVertexArrays(1, &cubeVAO);
-  glGenBuffers(1, &VBO);
+  glGenBuffers(1, &cubeVBO);
 
   glBindVertexArray(cubeVAO);
 
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
   glBufferData(
       GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
 
@@ -153,44 +155,107 @@ int main()
       reinterpret_cast<void*>(6 * verticesElementSize));
   glEnableVertexAttribArray(2);
 
+  std::array lightCubePositions{ glm::vec3(0.7f, 0.2f, 2.0f),
+                                 glm::vec3(2.3f, -3.3f, -4.0f),
+                                 glm::vec3(-4.0f, 2.0f, -12.0f),
+                                 glm::vec3(0.0f, 0.0f, -3.0f) };
+
+  GLuint lightCubeVAO;
+  glGenVertexArrays(1, &lightCubeVAO);
+  glBindVertexArray(lightCubeVAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+  glVertexAttribPointer(
+      0,
+      3,
+      GL_FLOAT,
+      GL_FALSE,
+      8 * verticesElementSize,
+      reinterpret_cast<void*>(0));
+  glEnableVertexAttribArray(0);
+
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   GLuint diffuseMap = loadTexture("./assets/textures/container2.png");
   GLuint specularMap = loadTexture("./assets/textures/container2_specular.png");
 
+  glm::vec3 clearColor(0.75f, 0.52f, 0.3f);
+
+  glm::vec3 dirLightDirection(-0.2f, -1.0f, -0.3);
+  glm::vec3 dirLightAmbient(0.3f, 0.24f, 0.14f);
+  glm::vec3 dirLightDiffuse(0.7f, 0.42f, 0.26f);
+  glm::vec3 dirLightSpecular(0.5f, 0.5f, 0.5f);
+
+  std::array pointLightColors{ glm::vec3(1.0f, 0.6f, 0.0f),
+                               glm::vec3(1.0f, 0.0f, 0.0f),
+                               glm::vec3(1.0f, 1.0, 0.0),
+                               glm::vec3(0.2f, 0.2f, 1.0f) };
+  float pkc = 1.0F, pkl = 0.09F, pkq = 0.032F;
+
+  glm::vec3 spotLightAmbient(0.0f, 0.0f, 0.0f);
+  glm::vec3 spotLightDiffuse(0.8f, 0.8f, 0.0f);
+  glm::vec3 spotLightSpecular(0.8f, 0.8f, 0.0f);
+  float skc = 1.0F, skl = 0.09F, skq = 0.032F;
+  float innerCutoff = glm::cos(glm::radians(12.5F)),
+        outerCutoff = glm::cos(glm::radians(13.0F));
+
   worldShader.bind();
   worldShader.setInt("material.diffuse", 0);
   worldShader.setInt("material.specular", 1);
+  worldShader.setFloat("material.shininess", 32.0F);
 
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
 
-    glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = cameraProjection.getProjectionMatrix();
+    glm::mat4 view = camera.getViewMatrix();
 
     // Render Commands Start
 
-    glClearColor(0.1F, 0.1F, 0.1F, 1.0F);
+    glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0F);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     worldShader.bind();
-    worldShader.setMat4("view", view);
     worldShader.setMat4("projection", projection);
+    worldShader.setMat4("view", view);
 
-    worldShader.setFloat("material.shininess", 32.0F);
+    worldShader.setVec3("dirLight.direction", dirLightDirection);
+    worldShader.setVec3("dirLight.ambient", dirLightAmbient);
+    worldShader.setVec3("dirLight.diffuse", dirLightDiffuse);
+    worldShader.setVec3("dirLight.specular", dirLightSpecular);
 
-    worldShader.setVec3("light.position", glm::vec3(0.0F));
-    worldShader.setVec3("light.direction", glm::vec3(0.0F, 0.0F, -1.0F));
-    worldShader.setFloat("light.innerCutoff", glm::cos(glm::radians(10.0F)));
-    worldShader.setFloat("light.outerCutoff", glm::cos(glm::radians(12.4F)));
-    worldShader.setVec3("light.ambient", 0.1F, 0.1F, 0.1F);
-    worldShader.setVec3("light.diffuse", 0.8F, 0.8F, 0.5F);
-    worldShader.setVec3("light.specular", 1.0F, 1.0F, 1.0F);
-    worldShader.setFloat("light.kc", 1.0F);
-    worldShader.setFloat("light.kl", 0.09F);
-    worldShader.setFloat("light.kq", 0.032F);
+    worldShader.setInt("numPointLights", 4);
+    for (int i = 0; i < 4; i++)
+    {
+      worldShader.setVec3(
+          std::format("pointLights[{}].position", i), lightCubePositions[i]);
+      worldShader.setVec3(
+          std::format("pointLights[{}].ambient", i),
+          0.1F * pointLightColors[i]);
+      worldShader.setVec3(
+          std::format("pointLights[{}].diffuse", i), pointLightColors[i]);
+      worldShader.setVec3(
+          std::format("pointLights[{}].specular", i), pointLightColors[i]);
+      worldShader.setFloat(std::format("pointLights[{}].kc", i), pkc);
+      worldShader.setFloat(std::format("pointLights[{}].kl", i), pkl);
+      worldShader.setFloat(std::format("pointLights[{}].kq", i), pkq);
+    }
+
+    worldShader.setInt("numSpotLights", 1);
+
+    worldShader.setVec3("spotLights[0].position", glm::vec3(0.0F));
+    worldShader.setVec3(
+        "spotLights[0].direction", glm::vec3(0.0F, 0.0F, -1.0F));
+    worldShader.setVec3("spotLights[0].ambient", spotLightAmbient);
+    worldShader.setVec3("spotLights[0].diffuse", spotLightDiffuse);
+    worldShader.setVec3("spotLights[0].specular", spotLightSpecular);
+    worldShader.setFloat("spotLights[0].kc", skc);
+    worldShader.setFloat("spotLights[0].kl", skl);
+    worldShader.setFloat("spotLights[0].kq", skq);
+    worldShader.setFloat("spotLights[0].innerCutoff", innerCutoff);
+    worldShader.setFloat("spotLights[0].outerCutoff", outerCutoff);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -201,16 +266,33 @@ int main()
 
     for (std::size_t i = 0; i < cubePositions.size(); i++)
     {
-      float angle = 20.0f * i;
-      glm::mat4 cubeModel = glm::mat4(1.0f);
+      float angle = 20.0F * i;
+      glm::mat4 cubeModel = glm::mat4(1.0F);
       cubeModel = glm::translate(cubeModel, cubePositions[i]);
       cubeModel = glm::rotate(
-          cubeModel, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+          cubeModel, glm::radians(angle), glm::vec3(1.0F, 0.3F, 0.5F));
       glm::mat3 normalMat =
           glm::transpose(glm::inverse(glm::mat3(view * cubeModel)));
 
       worldShader.setMat4("model", cubeModel);
       worldShader.setMat3("normalMat", normalMat);
+
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+
+    lightShader.bind();
+    lightShader.setMat4("projection", projection);
+    lightShader.setMat4("view", view);
+
+    glBindVertexArray(lightCubeVAO);
+
+    for (std::size_t i = 0; i < lightCubePositions.size(); i++)
+    {
+      glm::mat4 lightCubeModel = glm::mat4(1.0F);
+      lightCubeModel = glm::translate(lightCubeModel, lightCubePositions[i]);
+      lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2F));
+
+      lightShader.setMat4("model", lightCubeModel);
 
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
@@ -223,8 +305,9 @@ int main()
 
   glDeleteTextures(1, &specularMap);
   glDeleteTextures(1, &diffuseMap);
+  glDeleteVertexArrays(1, &lightCubeVAO);
   glDeleteVertexArrays(1, &cubeVAO);
-  glDeleteBuffers(1, &VBO);
+  glDeleteBuffers(1, &cubeVBO);
 
   glfwTerminate();
 
