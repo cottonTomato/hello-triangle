@@ -180,25 +180,25 @@ int main()
   GLuint diffuseMap = loadTexture("./assets/textures/container2.png");
   GLuint specularMap = loadTexture("./assets/textures/container2_specular.png");
 
-  glm::vec3 clearColor(0.1f, 0.1f, 0.1f);
+  glm::vec3 clearColor(0.0f, 0.0f, 0.0f);
 
   glm::vec3 dirLightDirection(-0.2f, -1.0f, -0.3f);
-  glm::vec3 dirLightAmbient(0.05f, 0.05f, 0.1f);
-  glm::vec3 dirLightDiffuse(0.2f, 0.2f, 0.7);
-  glm::vec3 dirLightSpecular(0.7f, 0.7f, 0.7f);
+  glm::vec3 dirLightAmbient(0.0f, 0.0f, 0.0f);
+  glm::vec3 dirLightDiffuse(0.05f, 0.05f, 0.05f);
+  glm::vec3 dirLightSpecular(0.2f, 0.2f, 0.2f);
 
-  std::array pointLightColors{ glm::vec3(0.2f, 0.2f, 0.6f),
-                               glm::vec3(0.3f, 0.3f, 0.7f),
-                               glm::vec3(0.0f, 0.0f, 0.3f),
-                               glm::vec3(0.4f, 0.4f, 0.4f) };
-  float pkc = 1.0F, pkl = 0.09F, pkq = 0.032F;
+  std::array pointLightColors{ glm::vec3(0.1f, 0.1f, 0.1f),
+                               glm::vec3(0.1f, 0.1f, 0.1f),
+                               glm::vec3(0.1f, 0.1f, 0.1f),
+                               glm::vec3(0.3f, 0.1f, 0.1f) };
+  float pkc = 1.0F, pkl = 0.14F, pkq = 0.07F;
 
   glm::vec3 spotLightAmbient(0.0f, 0.0f, 0.0f);
   glm::vec3 spotLightDiffuse(1.0f, 1.0f, 1.0f);
   glm::vec3 spotLightSpecular(1.0f, 1.0f, 1.0f);
-  float skc = 1.0F, skl = 0.009F, skq = 0.0032F;
+  float skc = 1.0F, skl = 0.09F, skq = 0.032F;
   float innerCutoff = glm::cos(glm::radians(10.0F)),
-        outerCutoff = glm::cos(glm::radians(12.5F));
+        outerCutoff = glm::cos(glm::radians(15.5F));
 
   worldShader.bind();
   worldShader.setInt("material.diffuse", 0);
